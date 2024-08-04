@@ -3,5 +3,7 @@ package model
 type ContextKey int
 
 const (
-	LOGGER ContextKey = iota
+	Config ContextKey = iota
+	EdgeID
+	Logger
 )
