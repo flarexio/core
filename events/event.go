@@ -17,6 +17,7 @@ type DomainEvent interface {
 type EventStore interface {
 	AddEvent(...DomainEvent)
 	Notify() error
+	Events() []DomainEvent
 }
 
 type eventStore struct {
@@ -79,4 +80,8 @@ func (s *eventStore) Notify() error {
 
 	s.events = make([]DomainEvent, 0)
 	return nil
+}
+
+func (s *eventStore) Events() []DomainEvent {
+	return s.events
 }
