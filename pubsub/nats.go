@@ -7,11 +7,12 @@ import (
 	"sync"
 
 	"github.com/nats-io/nats.go"
+	"github.com/nats-io/nats.go/micro"
 )
 
 type NATSPubSub interface {
 	PubSub
-	Conn() (*nats.Conn, error)
+	AddService(cfg micro.Config) (micro.Service, error)
 }
 
 func NewNATSPubSub(url string, name string, creds string) (NATSPubSub, error) {
@@ -76,10 +77,10 @@ func (ps *natsPubSub) Close() error {
 	return ps.nc.Drain()
 }
 
-func (ps *natsPubSub) Conn() (*nats.Conn, error) {
+func (ps *natsPubSub) AddService(cfg micro.Config) (micro.Service, error) {
 	if ps.nc == nil {
 		return nil, errors.New("connection not found")
 	}
 
-	return ps.nc, nil
+	return micro.AddService(ps.nc, cfg)
 }
