@@ -7,12 +7,14 @@ import (
 	"sync"
 
 	"github.com/nats-io/nats.go"
+	"github.com/nats-io/nats.go/jetstream"
 	"github.com/nats-io/nats.go/micro"
 )
 
 type NATSPubSub interface {
 	PubSub
 	AddService(cfg micro.Config) (micro.Service, error)
+	AddJetStream(opts ...jetstream.JetStreamOpt) (jetstream.JetStream, error)
 }
 
 func NewNATSPubSub(url string, name string, creds string) (NATSPubSub, error) {
@@ -83,4 +85,12 @@ func (ps *natsPubSub) AddService(cfg micro.Config) (micro.Service, error) {
 	}
 
 	return micro.AddService(ps.nc, cfg)
+}
+
+func (ps *natsPubSub) AddJetStream(opts ...jetstream.JetStreamOpt) (jetstream.JetStream, error) {
+	if ps.nc == nil {
+		return nil, errors.New("connection not found")
+	}
+
+	return jetstream.New(ps.nc, opts...)
 }
