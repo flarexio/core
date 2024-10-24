@@ -6,4 +6,5 @@ const (
 	Config ContextKey = iota
 	EdgeID
 	Logger
+	RequestInfo
 )
