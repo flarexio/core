@@ -9,6 +9,7 @@ import (
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/nats-io/nats.go/micro"
+	"go.uber.org/zap"
 )
 
 type NATSPubSub interface {
@@ -30,6 +31,10 @@ func NewNATSPubSub(url string, name string, creds string) (NATSPubSub, error) {
 	}
 
 	return &natsPubSub{
+		log: zap.L().With(
+			zap.String("infra", "pubsub"),
+			zap.String("address", url),
+		),
 		nc:            nc,
 		subscriptions: make(map[string]*nats.Subscription),
 		consumers:     make(map[ConsumerStreamPair]*ConsumerCtx),
@@ -37,6 +42,7 @@ func NewNATSPubSub(url string, name string, creds string) (NATSPubSub, error) {
 }
 
 type natsPubSub struct {
+	log           *zap.Logger
 	nc            *nats.Conn
 	js            jetstream.JetStream
 	subscriptions map[string]*nats.Subscription
@@ -161,6 +167,12 @@ func (ps *natsPubSub) AddStreamAndConsumer(ctx context.Context, cfg StreamConsum
 }
 
 func (ps *natsPubSub) PullConsume(consumer ConsumerStreamPair, handler MessageHandler) error {
+	log := ps.log.With(
+		zap.String("action", "pull_consume"),
+		zap.String("stream", consumer.Stream),
+		zap.String("consumer", consumer.Consumer),
+	)
+
 	ps.RLock()
 	defer ps.RUnlock()
 
@@ -178,6 +190,7 @@ func (ps *natsPubSub) PullConsume(consumer ConsumerStreamPair, handler MessageHa
 		ctx := context.Background()
 		err := handler(ctx, m)
 		if err != nil {
+			log.Error(err.Error())
 			return
 		}
 

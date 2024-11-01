@@ -33,7 +33,7 @@ type Stream struct {
 func (s *Stream) UnmarshalYAML(value *yaml.Node) error {
 	var raw struct {
 		Name   string
-		Config json.RawMessage
+		Config string
 	}
 
 	if err := value.Decode(&raw); err != nil {
@@ -41,10 +41,10 @@ func (s *Stream) UnmarshalYAML(value *yaml.Node) error {
 	}
 
 	s.Name = raw.Name
-	s.Raw = raw.Config
+	s.Raw = json.RawMessage(raw.Config)
 
 	var cfg jetstream.StreamConfig
-	if err := json.Unmarshal(raw.Config, &cfg); err != nil {
+	if err := json.Unmarshal(s.Raw, &cfg); err != nil {
 		return err
 	}
 
@@ -66,7 +66,7 @@ func (c *Consumer) UnmarshalYAML(value *yaml.Node) error {
 	var raw struct {
 		Name   string
 		Stream string
-		Config json.RawMessage
+		Config string
 	}
 
 	if err := value.Decode(&raw); err != nil {
@@ -75,10 +75,10 @@ func (c *Consumer) UnmarshalYAML(value *yaml.Node) error {
 
 	c.Name = raw.Name
 	c.Stream = raw.Stream
-	c.Raw = raw.Config
+	c.Raw = json.RawMessage(raw.Config)
 
 	var cfg jetstream.ConsumerConfig
-	if err := json.Unmarshal(raw.Config, &cfg); err != nil {
+	if err := json.Unmarshal(c.Raw, &cfg); err != nil {
 		return err
 	}
 
